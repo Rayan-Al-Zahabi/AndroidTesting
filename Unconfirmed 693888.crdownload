@@ -1,0 +1,431 @@
+#Hanah Rahman
+#Nerd Chase
+#AP CSP create task
+
+#Setting the Scene 
+import turtle
+import math
+import random
+import time
+import winsound
+window = turtle.Screen()
+window.bgpic("title screen.gif")
+window.title("Nerd Chase")
+window.bgcolor("black")
+window.setup(700,700)
+window.tracer(0)
+time.sleep(4)
+window.bgpic("")
+winsound.PlaySound("Off Limits.wav", winsound.SND_ASYNC)
+
+#Sprites
+images = ["nerd_right.gif", "nerd_left.gif", "arcade.gif", "wall.gif", "blob_left.gif",
+          "blob_right.gif", "title screen.gif", "easter-egg.gif", "door.gif", "egg-screen.gif", "youwin screen.gif"]
+for image in images:
+    turtle.register_shape(image)
+
+#Create Pen object
+class Pen(turtle.Turtle):
+    def __init__(self):
+        turtle.Turtle.__init__(self)
+        self.shape("square")
+        self.color("white")
+        self.penup()
+        self.speed(0)
+
+#Create player class
+class Player(turtle.Turtle):
+    def __init__(self):
+        turtle.Turtle.__init__(self)
+        self.shape("nerd_right.gif")
+        self.color("blue")
+        self.penup()
+        self.speed(0)
+        self.points = 0
+
+    def go_up(self):
+        #calc spot to go to
+        move_to_x = self.xcor()
+        move_to_y = self.ycor() + 24
+        
+        #check if wall detected
+        if (move_to_x, move_to_y) not in walls:
+            self.goto(move_to_x, move_to_y)
+
+    def go_down(self):
+        #calc spot to go to
+        move_to_x = self.xcor()
+        move_to_y = self.ycor() - 24
+
+        #check if wall detected
+        if (move_to_x, move_to_y) not in walls:
+            self.goto(move_to_x, move_to_y)
+
+    def go_left(self):
+        #calc spot to go to
+        move_to_x = self.xcor() - 24
+        move_to_y = self.ycor()
+
+        #check if wall detected
+        if (move_to_x, move_to_y) not in walls:
+            self.goto(move_to_x, move_to_y)
+
+        self.shape("nerd_left.gif")
+        
+
+    def go_right(self):
+        #calc spot to go to
+        move_to_x = player.xcor()+ 24
+        move_to_y = player.ycor()
+
+        self.shape("nerd_right.gif")
+        
+        #check if wall detected
+        if (move_to_x, move_to_y) not in walls:
+            self.goto(move_to_x, move_to_y)
+
+    #Checks for a collision between Arcade and player, Pythag theorem
+    def is_collision(self, other):
+        a = self.xcor()-other.xcor()
+        b = self.ycor()-other.ycor()
+        distance = math.sqrt((a ** 2) + (b ** 2) )
+
+        if distance < 5:
+            return True
+        else:
+            return False
+
+        
+#Create Arcade class(reward)
+class Arcade(turtle.Turtle):
+    def __init__(self, x, y):
+        turtle.Turtle.__init__(self)
+        self.shape("arcade.gif")
+        self.color("green")
+        self.penup()
+        self.speed(0)
+        self.points = 100
+        self.goto(x, y)
+
+    #Moving arcade off screen, hiding it
+    def destroy(self):
+        self.goto(2000, 2000)
+        self.hideturtle()
+
+#Blob class
+class Enemy(turtle.Turtle):
+    def __init__(self, x, y):
+        turtle.Turtle.__init__(self)
+        self.shape("blob_left.gif")
+        self.color("red")
+        self.penup()
+        self.speed(0)
+        self.points = 20
+        self.goto(x, y)
+        self.direction = random.choice(["up", "down", "left", "right"])
+
+    def move(self):
+        if self.direction == "up":
+            dx = 0
+            dy = 24
+        elif self.direction == "down":
+            dx = 0
+            dy = -24
+        elif self.direction == "left":
+            dx = -24
+            dy = 0
+            self.shape("blob_left.gif")
+        elif self.direction == "right":
+            dx = 24
+            dy = 0
+            self.shape("blob_right.gif")
+        else:
+            dx = 0
+            dy = 0
+
+         #Calc spot to go to
+        move_to_x = self.xcor() + dx
+        move_to_y = self.ycor() + dy
+
+        #check if wall detected
+        if (move_to_x, move_to_y) not in walls:
+            self.goto(move_to_x, move_to_y)
+        else:
+            #choose another direction
+            self.direction = random.choice(["up", "down", "left", "right"])
+
+        #set timer(miliseconds)
+        turtle.ontimer(self.move, t=random.randint(100, 300))
+
+    def destroy(self):
+        self.goto(2000, 2000)
+        self.hideturtle()
+
+    def is_close(self, other):
+        a = self.xcor()-other.xcor()
+        b = self.ycor()-other.ycor()
+        distance = math.sqrt((a ** 2) + (b ** 2) )
+
+        if distance < 100:
+            return True
+        else:
+            return False
+
+        #Check is the player is in proximity to blob
+        # If it is then follow
+        if self.is_close(player):
+            if player.xcor() < self.xcor():
+                self.direction = "left"
+            elif player.xcor() > self.xcor():
+                self.direction = "right"
+            elif player.ycor() < self.ycor():
+                self.direction = "down"
+            elif player.ycor() > self.ycor():
+                self.direction = "up"
+
+class Egg(turtle.Turtle):
+    def __init__(self, x, y):
+        turtle.Turtle.__init__(self)
+        self.shape("easter-egg.gif")
+        self.color("yellow")
+        self.penup()
+        self.speed(0)
+        self.points = 100,000
+        self.goto(x, y)
+
+    #Moving egg off screen, hiding it
+    def destroy(self):
+        self.goto(2000, 2000)
+        self.hideturtle()
+        
+class Door(turtle.Turtle):
+    def __init__(self, x, y):
+        turtle.Turtle.__init__(self)
+        self.shape("door.gif")
+        self.color("purple")
+        self.penup()
+        self.speed(0)
+        self.goto(x, y)
+        
+    def destroy(self):
+        self.goto(2000, 2000)
+        self.hideturtle()
+
+#Create function for levels
+def setup_maze(level):
+    pen.clearstamps()
+
+    for enemy in enemies:
+        enemy.destroy()
+    enemies.clear()
+
+    walls.clear()
+    eggs.clear()
+
+    for arcade in arcades:
+        arcade.destroy()
+    arcades.clear()
+
+    for door in doors:
+        door.destroy()
+    doors.clear()
+
+    for egg in eggs:
+        egg.destroy()
+    eggs.clear()
+        
+    #window.clear()
+    #window.bgpic("")
+    
+    for y in range(len(level)):
+        for x in range(len(level[y])):
+            #Get value at each (x,y) coord
+            # switch places as we set up the list
+            character = level[y][x]
+            screen_x = -288 + (x * 24)
+            screen_y = 288 - (y * 24)
+
+            #Check if "X"
+            if character == "X":
+                pen.goto(screen_x,screen_y)
+                pen.shape("wall.gif")
+                pen.stamp()
+                #Add coord to wall list
+                walls.append((screen_x, screen_y))
+                
+            #Check if it is Player
+            if character == "P":
+                player.goto(screen_x,screen_y)
+
+            #Check if it is A (Arcade)
+            if character == "A":
+                arcades.append(Arcade(screen_x, screen_y))
+                
+            #Check if "B" (blob creature)
+            if character == "B":
+                enemies.append(Enemy(screen_x, screen_y))
+            #check if "E" (Egg)
+            if character == "E":
+                eggs.append(Egg(screen_x, screen_y))
+            #check if "D" (Door)
+            if character == "D":
+                doors.append(Door(screen_x, screen_y))
+                
+                
+                
+#Create list for the levels
+levels = [""]
+
+#first level
+level_1 = [
+"XXXXXXXXXXXXXXXXXXXXXXXXX",
+"XP  XXXXXXX         XXXXX",
+"X  XXXXXXX       A  XXXXX",
+"X       XX  XXXXXX  XXXXX",
+"X        XX  XXX       XX",
+"XXXXXX  XX  XXXB       XX",
+"XXXXXX  XX  XXXXXX  XXXXX",
+"XXXXXX  XX  XXXXXX  XXXXX",
+"XB XXX       BXXXX  XXXXX",
+"X  XXX  XXXXXXXXXXXXXXXXX",
+"X         XXXXXXXXXXXX   ",
+"XB            XXXXXXXXXXX",
+"XXXXXXXXXXXXX   XXXXX   X",
+"XXXXXXXXXXXXXX   XXX   AX",
+"XXX  XXXXXXX          XXX",
+"XXXXXXXXXXXXXX          X",
+"XXX  XXXXXXXXX          X",
+"XXX                     X",
+"XXXB         B      XXA X",
+"XX  XXXXXXXXXXXXXX    X X",
+"XXX  XXXXXXXXXXXXXX  X  X",
+"XXXXX XXXXXXXXXXXXXE XXXX",
+"XXXX            XXXXX   X",
+"XXXXXXXXXXXXXXXXXXXXXXXXX"
+]
+
+level_2 = [
+"XXXXXXXXXXXXXXXXXXXXXXXXX",
+"XXXXXXXXXXXXXXXXXXXXXXXXX",
+"XXXXXXXXXXXXXXXXXXXXXXXXX",
+"XXXXXXXXXXXXXXXXXXXXXXXXX",
+"XXXXXXXXXXXXXXXXXXXXXXXXX",
+"XXXXXXXXXXXXXXXXXXXXXXXXX",
+"XXXXXXXXXXXXXXXXXXXXXXXXX",
+"XXXXXXXXXXXXXXXXXX  XXXXX",
+"X                       X",
+"X                       X",
+"X                       X",
+"X                       X",
+"XXXXXXXXXXXXXXXXXXXXXXXXX",
+"XXXXXXXXXXXXXX   XXX   DX",
+"XXX  XXXXXXX          XXX",
+"XXXXXXXXXXXXXX          X",
+"XXX  XXXXXXXXX          X",
+"XXX                     X",
+"XXX           X      XX X",
+"XX  XXXXXXXXXXXXXX    X X",
+"XXX  XXXXXXXXXXXXXX  X  X",
+"XXXX  XXXXXXXXXXXXX  XXXX",
+"XXXXP           XXXXX   X",
+"XXXXXXXXXXXXXXXXXXXXXXXXX"
+]
+
+gameover_level = ["XXX",
+                  "XPX",
+                  "XXX"]
+
+#Add an arcade list
+arcades = []
+
+#enemy list
+enemies = []
+
+#egg list
+eggs = []
+
+#door list
+doors = []
+
+#Add maze to list
+my_level = 1
+levels.append(level_1)
+levels.append(level_2)
+levels.append(gameover_level)
+
+                                    
+#These are class instances
+pen = Pen()
+player = Player()
+
+#Create wall coord list
+walls = []
+
+#Set up level
+setup_maze(levels[my_level])
+
+#Keys
+turtle.listen()
+turtle.onkey(player.go_left, "Left")
+turtle.onkey(player.go_right, "Right")
+turtle.onkey(player.go_up, "Up")
+turtle.onkey(player.go_down, "Down")
+
+#turn off updates
+window.tracer(0)
+
+#Moving blobs
+for enemy in enemies:
+    turtle.ontimer(enemy.move, t=250)
+
+#Game loop
+while True:
+    #Check collisions
+    #Iterate Arcade list
+    for arcade in arcades:
+        if player.is_collision(arcade):
+            #Add points from arcade to player
+            player.points += arcade.points
+            print ("You received: {} points".format(player.points))
+            #destroy arcade
+            arcade.destroy()
+            #Remove arcade from list
+            arcades.remove(arcade)
+
+        if player.points>=300:
+           print ("you win!")
+           window.bgpic("youwin screen.gif")
+           
+
+    #If player interacts with enemy
+    for enemy in enemies:
+        if player.is_collision(enemy):
+            print ("You died!")
+            
+    #print(len(eggs))
+    for egg in eggs:
+        #print( "" + str(egg) + " " + str(player))
+        if player.is_collision(egg):
+            print("EGG ADDED")
+            my_level = my_level + 1
+            setup_maze(levels[my_level])
+            if my_level >= len(levels):
+                window.bgpic("title screen.gif")
+            egg.clear()
+            egg.destroy()
+            
+    for door in doors:
+        if player.is_collision(door):
+           my_level = my_level + 1
+           setup_maze(levels[my_level])
+           print ("game over")
+           window.bgpic("egg-screen.gif")
+
+        if player.collision(arcade)>=3:
+           setup_maze(levels[my_level])
+           print ("you win")
+           window.bgpic("youwin screen.gif")
+
+          
+    window.update()
+        
